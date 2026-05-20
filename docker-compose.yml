@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: moca_db
+    restart: always
+    environment:
+      POSTGRES_DB: moca_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: moca_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend/mocaproject
+    container_name: moca_backend
+    restart: always
+    command: >
+      sh -c "python manage.py migrate &&
+             gunicorn mocaproject.wsgi --bind 0.0.0.0:8000"
+    environment:
+      - DATABASE_URL=postgres://postgres:moca_password@db:5432/moca_db
+      - SECRET_KEY=django-insecure-your-secret-key
+      - DEBUG=False
+      - EMAIL_HOST_USER=shahinvp73@gmail.com
+      - EMAIL_HOST_PASSWORD=eajfxxbgwmhigmik
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./front-end/my-react-app
+    container_name: moca_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

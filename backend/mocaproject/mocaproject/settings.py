@@ -104,17 +104,17 @@ WSGI_APPLICATION = 'mocaproject.wsgi.application'
 
 
 # Database (PostgreSQL + Railway + Local)
-# if 'DATABASE_URL' in os.environ:
-#     # Railway Production Database
-#     DATABASES = {
-#         'default': dj_database_url.config(
-#             conn_max_age=600,
-#             conn_health_checks=True,
-#         )
-#     }
-# else:
-#     # Local Development Database using PostgreSQL
-DATABASES = {
+if 'DATABASE_URL' in os.environ:
+    # Production Database (Railway / Render / Docker)
+    DATABASES = {
+        'default': dj_database_url.config(
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
+    }
+else:
+    # Local Development Database using PostgreSQL
+    DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': 'moca_db',
@@ -175,6 +175,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 CSRF_TRUSTED_ORIGINS = [
     'https://backend-production-22c0.up.railway.app',
     'https://*.up.railway.app',
+    'https://*.onrender.com',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
 ]
