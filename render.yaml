@@ -6,6 +6,7 @@ services:
   - type: web
     name: moca-backend
     env: python
+    plan: free
     buildCommand: "cd backend/mocaproject && pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate"
     startCommand: "cd backend/mocaproject && gunicorn mocaproject.wsgi:application"
     envVars:
