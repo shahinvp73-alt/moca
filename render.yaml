@@ -31,10 +31,7 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: moca-backend
-          property: url
+        sync: false
 
 databases:
   # 3. PostgreSQL Database
