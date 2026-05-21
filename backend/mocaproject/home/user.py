@@ -8,8 +8,11 @@ from home.models import User, PasswordResetOTP
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 import secrets
+import logging
 from django.core.mail import send_mail
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 @api_view(['POST'])
@@ -183,14 +186,21 @@ def request_password_reset_otp(request):
         user = User.objects.filter(username__iexact=username, email__iexact=email).first()
         if not user:
             return Response({"error": "No account found with this username and email."}, status=400)
-    except Exception as e:
-        return Response({"error": "An error occurred while searching for the user."}, status=500)
+    except Exception:
+        logger.exception("Password reset user lookup failed")
+        return Response({"error": "An error occurred while searching for the user."}, status=503)
 
-    PasswordResetOTP.objects.filter(email=email).delete()
+    try:
+        PasswordResetOTP.objects.filter(email=email).delete()
 
-    # Generate 6-digit OTP
-    otp = f"{secrets.randbelow(1000000):06d}"
-    otp_record = PasswordResetOTP.objects.create(email=email, otp=otp)
+        # Generate 6-digit OTP
+        otp = f"{secrets.randbelow(1000000):06d}"
+        otp_record = PasswordResetOTP.objects.create(email=email, otp=otp)
+    except Exception:
+        logger.exception("Password reset OTP database operation failed")
+        return Response({
+            "error": "Password reset service is not ready. Please try again later."
+        }, status=503)
 
     # Send Email
     subject = "Your Password Reset OTP"
@@ -215,10 +225,10 @@ def request_password_reset_otp(request):
     
     try:
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email], fail_silently=False)
-    except Exception as e:
+    except Exception:
         otp_record.delete()
-        print(f"Failed to send email: {e}")
-        return Response({"error": "Failed to send email. Please try again later."}, status=500)
+        logger.exception("Failed to send password reset email")
+        return Response({"error": "Failed to send email. Please try again later."}, status=503)
 
     return Response({"message": "OTP sent successfully to your email."})
 
