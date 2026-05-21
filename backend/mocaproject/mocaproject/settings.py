@@ -37,8 +37,9 @@ DEBUG = os.environ.get("DEBUG", "True") == "True"
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
+    "moca-backend.onrender.com",
+    ".onrender.com",
     ".up.railway.app",
-    "*"
 ]
 
 
@@ -168,14 +169,43 @@ AUTH_USER_MODEL = 'home.User'
 
 
 # CORS
-CORS_ALLOW_ALL_ORIGINS = True
+FRONTEND_ORIGINS = [
+    "https://moca-frontend.onrender.com",
+    "https://moca-frontend-49p3.onrender.com",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get(
+        "CORS_ALLOWED_ORIGINS",
+        ",".join(FRONTEND_ORIGINS),
+    ).split(",")
+    if origin.strip()
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://moca-frontend-[a-z0-9]+\.onrender\.com$",
+]
+
+CORS_ALLOW_CREDENTIALS = True
 
 
 # CSRF
 CSRF_TRUSTED_ORIGINS = [
     'https://backend-production-22c0.up.railway.app',
+    'https://moca-backend.onrender.com',
+    'https://moca-frontend.onrender.com',
+    'https://moca-frontend-49p3.onrender.com',
     'https://*.up.railway.app',
     'https://*.onrender.com',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
 ]
