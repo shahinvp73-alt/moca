@@ -72,6 +72,9 @@ MIDDLEWARE = [
     # CORS
     'corsheaders.middleware.CorsMiddleware',
 
+    # Return JSON for unexpected API errors so CORS headers are still applied.
+    'mocaproject.middleware.JsonExceptionMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
