@@ -250,15 +250,15 @@ EMAIL_TIMEOUT = int(
 
 EMAIL_HOST_USER = os.environ.get(
     "EMAIL_HOST_USER",
-    "shahinvp73@gmail.com"
+    ""
 )
 
 EMAIL_HOST_PASSWORD = os.environ.get(
     "EMAIL_HOST_PASSWORD",
-    "wctujzxbmahrjvxa"
+    ""
 )
 
 DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL",
-    "mocca <shahinvp73@gmail.com>"
+    f"mocca <{EMAIL_HOST_USER}>" if EMAIL_HOST_USER else ""
 )
