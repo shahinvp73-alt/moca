@@ -62,6 +62,7 @@ const EmployeeDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [taskActionModal, setTaskActionModal] = useState(null); // { task, type: 'accept' | 'complete' }
   const [dismissedAlerts, setDismissedAlerts] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const selectedManagerRef = useRef("");
   const messageRequestRef = useRef(0);
@@ -425,12 +426,32 @@ const EmployeeDashboard = () => {
   };
 
   return (
-    <div style={s.container}>
+    <div style={s.container} className="dashboard-container employee-dashboard">
       {notification && (
         <div style={{ ...s.toast, ...s[`toast_${notification.type}`] }}>{notification.msg}</div>
       )}
 
-      <div style={s.notificationStack}>
+      {/* Mobile Top Header */}
+      <div className="mobile-header">
+        <div className="mobile-header-logo-section">
+          <button className="mobile-hamburger-btn" onClick={() => setSidebarOpen(true)}>
+            ☰
+          </button>
+          <div style={{ ...s.logo, paddingLeft: 0 }}>
+            <span style={s.logoIcon}>E</span>
+            <span style={s.logoText}>Employee</span>
+          </div>
+        </div>
+        <span className="mobile-header-title">{activeTabLabel[activeTab]}</span>
+        <div className="mobile-header-avatar">{initials(employeeName)}</div>
+      </div>
+
+      {/* Sidebar Overlay backdrop */}
+      {sidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+      )}
+
+      <div style={s.notificationStack} className="dashboard-notification-stack">
         {unreadCount > 0 && activeTab !== "messages" && (
           <button style={s.messagePopup} onClick={() => setActiveTab("messages")}>
             <span style={s.notifIcon}>✉</span>
@@ -439,7 +460,7 @@ const EmployeeDashboard = () => {
         )}
 
         {deadlineInfo.overdue.length > 0 && !dismissedAlerts.includes("overdue") && (
-          <div style={{ ...s.deadlinePopup, background: "#FCEBEB", color: "#A32D2D", border: "1px solid #fecaca" }}>
+          <div style={{ ...s.deadlinePopup, background: "#FCEBEB", color: "#A32D2D", border: "1px solid #fecaca" }} className="dashboard-deadlinePopup">
             <span style={s.notifIcon}>⚠️</span>
             <span style={{ flex: 1 }}><b>OVERDUE:</b> {deadlineInfo.overdue.length} task{deadlineInfo.overdue.length === 1 ? "" : "s"} past deadline!</span>
             <button onClick={() => dismissDeadline("overdue")} style={s.dismissBtn}>×</button>
@@ -447,7 +468,7 @@ const EmployeeDashboard = () => {
         )}
 
         {deadlineInfo.today.length > 0 && !dismissedAlerts.includes("today") && (
-          <div style={{ ...s.deadlinePopup, background: "#FFFBEB", color: "#B45309", border: "1px solid #fef3c7", animation: "pulse 2s infinite" }}>
+          <div style={{ ...s.deadlinePopup, background: "#FFFBEB", color: "#B45309", border: "1px solid #fef3c7", animation: "pulse 2s infinite" }} className="dashboard-deadlinePopup">
             <span style={s.notifIcon}>⚡</span>
             <span style={{ flex: 1 }}><b>Ends TODAY:</b> {deadlineInfo.today.length} task{deadlineInfo.today.length === 1 ? "" : "s"} must be finished today!</span>
             <button onClick={() => dismissDeadline("today")} style={s.dismissBtn}>×</button>
@@ -455,7 +476,7 @@ const EmployeeDashboard = () => {
         )}
 
         {deadlineInfo.day1.length > 0 && !dismissedAlerts.includes("day1") && (
-          <div style={{ ...s.deadlinePopup, background: "#FFFBEB", color: "#B45309", border: "1px solid #fef3c7" }}>
+          <div style={{ ...s.deadlinePopup, background: "#FFFBEB", color: "#B45309", border: "1px solid #fef3c7" }} className="dashboard-deadlinePopup">
             <span style={s.notifIcon}>⏰</span>
             <span style={{ flex: 1 }}><b>1 Day Left:</b> {deadlineInfo.day1.length} task{deadlineInfo.day1.length === 1 ? "" : "s"} ending tomorrow.</span>
             <button onClick={() => dismissDeadline("day1")} style={s.dismissBtn}>×</button>
@@ -463,7 +484,7 @@ const EmployeeDashboard = () => {
         )}
 
         {deadlineInfo.day2.length > 0 && !dismissedAlerts.includes("day2") && (
-          <div style={{ ...s.deadlinePopup, background: "#F8FAFC", color: "#475569", border: "1px solid #e2e8f0" }}>
+          <div style={{ ...s.deadlinePopup, background: "#F8FAFC", color: "#475569", border: "1px solid #e2e8f0" }} className="dashboard-deadlinePopup">
             <span style={s.notifIcon}>📅</span>
             <span style={{ flex: 1 }}><b>2 Days Left:</b> {deadlineInfo.day2.length} task{deadlineInfo.day2.length === 1 ? "" : "s"} ending soon.</span>
             <button onClick={() => dismissDeadline("day2")} style={s.dismissBtn}>×</button>
@@ -471,8 +492,11 @@ const EmployeeDashboard = () => {
         )}
       </div>
 
-      <aside style={s.sidebar}>
+      <aside style={s.sidebar} className={`dashboard-sidebar ${sidebarOpen ? "open" : ""}`}>
         <div style={s.sidebarTop}>
+          <div className="sidebar-mobile-close">
+            <button className="sidebar-mobile-close-btn" onClick={() => setSidebarOpen(false)}>×</button>
+          </div>
           <div style={s.logo}>
             <span style={s.logoIcon}>E</span>
             <span style={s.logoText}>Employee</span>
@@ -486,7 +510,10 @@ const EmployeeDashboard = () => {
               <button
                 key={tab.id}
                 style={{ ...s.navItem, ...(activeTab === tab.id ? s.navItemActive : {}) }}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setSidebarOpen(false);
+                }}
               >
                 <span style={s.navIcon}>{tab.icon}</span>
                 <span>{tab.label}</span>
@@ -495,14 +522,14 @@ const EmployeeDashboard = () => {
             ))}
           </nav>
         </div>
-        <button style={s.logoutBtn} onClick={handleLogout}>
+        <button style={s.logoutBtn} onClick={() => { handleLogout(); setSidebarOpen(false); }}>
           <span style={{ fontSize: 14 }}>X</span>
           <span>Logout</span>
         </button>
       </aside>
 
-      <main style={s.main}>
-        <div style={s.pageHeader}>
+      <main style={s.main} className="dashboard-main">
+        <div style={s.pageHeader} className="pageHeader">
           <div>
             <h1 style={s.pageTitle}>{activeTabLabel[activeTab]}</h1>
             <p style={s.pageSubtitle}>{activeTabSub[activeTab]}</p>
@@ -517,7 +544,7 @@ const EmployeeDashboard = () => {
 
         {activeTab === "overview" && (
           <>
-            <div style={s.statsRow}>
+            <div style={s.statsRow} className="dashboard-stats-row">
               <StatCard label="Pending" value={counts.pending} variant="pending" />
               <StatCard label="In Progress" value={counts.in_progress} variant="in_progress" />
               <StatCard label="Completed" value={counts.completed} variant="completed" />
@@ -527,7 +554,7 @@ const EmployeeDashboard = () => {
               {sortedWorks.slice(0, 5).map((work, i) => (
                 <React.Fragment key={work.id}>
                   {i > 0 && <Divider />}
-                  <div style={s.taskRow}>
+                  <div style={s.taskRow} className="dashboard-task-row">
                     <div style={{ ...s.statusBar, background: STATUS_META[work.status]?.bar }} />
                     <div style={s.taskLeft}>
                       <div style={s.taskTitle}>{work.title}</div>
@@ -569,7 +596,7 @@ const EmployeeDashboard = () => {
             {!loading && !error && filtered.map((work, i) => (
               <React.Fragment key={work.id}>
                 {i > 0 && <Divider />}
-                <div style={s.taskRow}>
+                <div style={s.taskRow} className="dashboard-task-row">
                   <div style={{ ...s.statusBar, background: STATUS_META[work.status]?.bar }} />
                   <div style={s.taskLeft}>
                     <div style={s.taskTitle}>{work.title}</div>
@@ -583,7 +610,7 @@ const EmployeeDashboard = () => {
                       <Badge status={work.status} />
                     </div>
                   </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }} className="dashboard-task-actions">
                     {work.status === "pending" && (
                       <button style={{ ...s.actionBtn, background: "#185FA5", color: "#E6F1FB" }}
                         onClick={() => handleAction(work, "accept")}>Accept</button>
@@ -600,8 +627,8 @@ const EmployeeDashboard = () => {
         )}
 
         {activeTab === "messages" && (
-          <div style={s.messageGrid}>
-            <SectionCard title={`People (${contacts.length})`}>
+          <div style={s.messageGrid} className="dashboard-message-grid">
+            <SectionCard title={`People (${contacts.length})`} className={`chat-contacts-panel ${selectedManager ? "has-selected" : ""}`}>
               {contacts.length === 0 && <p style={s.emptyText}>No contacts found</p>}
               {contacts.map((person, i) => {
                 const ac = AVATAR_COLORS[i % AVATAR_COLORS.length];
@@ -625,18 +652,22 @@ const EmployeeDashboard = () => {
             </SectionCard>
 
             <SectionCard title={selectedManager ? `Chat with ${contactMap[selectedManager] || "..."}` : "Messages"}
+              className={`chat-window-panel ${selectedManager ? "has-selected" : ""}`}
               action={<span style={s.secureChip}>Encrypted</span>}>
               {!selectedManager && <p style={s.emptyText}>Select a person to start messaging</p>}
               {selectedManager && (
                 <>
-                  <div style={s.messageList} ref={scrollContainerRef}>
+                  <button className="back-to-people-btn" onClick={() => setSelectedManager("")}>
+                    ← Back to People
+                  </button>
+                  <div style={s.messageList} className="dashboard-messageList" ref={scrollContainerRef}>
                     {messageLoading && <p style={s.emptyText}>Loading…</p>}
                     {!messageLoading && messages.length === 0 && <p style={s.emptyText}>No messages yet</p>}
                     {!messageLoading && messages.map((msg) => {
                       const isMine = String(msg.sender) === String(employeeId);
                       return (
-                        <div key={msg.id} style={{ ...s.messageBubbleWrap, justifyContent: isMine ? "flex-end" : "flex-start" }}>
-                          <div style={{ ...s.messageBubble, ...(isMine ? s.messageMine : s.messageTheirs) }}>
+                        <div key={msg.id} style={{ ...s.messageBubbleWrap, justifyContent: isMine ? "flex-end" : "flex-start" }} className="dashboard-messageBubbleWrap">
+                          <div style={{ ...s.messageBubble, ...(isMine ? s.messageMine : s.messageTheirs) }} className="dashboard-messageBubble">
                             {editingMessageId === msg.id ? (
                               <>
                                 <textarea style={s.editMessageInput} value={editingMessageBody}
@@ -668,8 +699,8 @@ const EmployeeDashboard = () => {
                     })}
                     <div ref={messagesEndRef} />
                   </div>
-                  <div style={s.messageComposer}>
-                    <textarea style={s.messageInput} placeholder="Write a message..."
+                  <div style={s.messageComposer} className="dashboard-messageComposer">
+                    <textarea style={s.messageInput} className="dashboard-messageInput" placeholder="Write a message..."
                       value={messageBody} onChange={(e) => setMessageBody(e.target.value)} />
                     <button style={{ ...s.btnSend, ...(messageSending ? { opacity: 0.65 } : {}) }}
                       onClick={sendMessage} disabled={messageSending}>
@@ -714,9 +745,9 @@ const AVATAR_COLORS = [
   { bg: "#E1F5EE", color: "#0F6E56" },
 ];
 
-const SectionCard = ({ title, action, children }) => (
-  <div style={s.card}>
-    <div style={s.cardHeader}>
+const SectionCard = ({ title, action, children, className }) => (
+  <div style={s.card} className={`dashboard-card ${className || ""}`}>
+    <div style={s.cardHeader} className="dashboard-cardHeader">
       <span style={s.cardTitle}>{title}</span>
       {action}
     </div>
@@ -729,7 +760,7 @@ const Divider = () => <div style={s.divider} />;
 const StatCard = ({ label, value, variant }) => {
   const colors = { pending: "#EF9F27", in_progress: "#378ADD", completed: "#639922" };
   return (
-    <div style={s.statCard}>
+    <div style={s.statCard} className="statCard">
       <div style={{ ...s.statAccentBar, background: colors[variant] || "#378ADD" }} />
       <div style={s.statLabel}>{label}</div>
       <div style={s.statValue}>{value}</div>
@@ -751,8 +782,8 @@ const Badge = ({ status }) => {
 };
 
 const ActionModal = ({ type, task, onClose, onConfirm }) => (
-  <div style={s.modalOverlay} onClick={onClose}>
-    <div style={s.modalContent} onClick={(e) => e.stopPropagation()}>
+  <div style={s.modalOverlay} onClick={onClose} className="dashboard-modalOverlay">
+    <div style={s.modalContent} onClick={(e) => e.stopPropagation()} className="dashboard-modalContent">
       <h3 style={s.modalTitle}>{type === "accept" ? "Accept Task" : "Complete Task"}</h3>
       <p style={s.modalDesc}>
         {type === "accept"
@@ -760,7 +791,7 @@ const ActionModal = ({ type, task, onClose, onConfirm }) => (
           : `Are you sure you want to mark "${task.title}" as completed?`}
       </p>
 
-      <div style={s.modalFooter}>
+      <div style={s.modalFooter} className="dashboard-modalFooter">
         <button style={{ ...s.pill, border: "none", background: "#f1f5f9" }} onClick={onClose}>
           Cancel
         </button>

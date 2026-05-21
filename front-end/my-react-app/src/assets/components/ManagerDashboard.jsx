@@ -56,9 +56,9 @@ const Badge = ({ status }) => {
   );
 };
 
-const SectionCard = ({ title, action, children }) => (
-  <div style={s.card}>
-    <div style={s.cardHeader}>
+const SectionCard = ({ title, action, children, className }) => (
+  <div style={s.card} className={`dashboard-card ${className || ""}`}>
+    <div style={s.cardHeader} className="dashboard-cardHeader">
       <span style={s.cardTitle}>{title}</span>
       {action}
     </div>
@@ -104,6 +104,7 @@ const ManagerDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [notification, setNotification] = useState(null);
   const [selectedContact, setSelectedContact] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [reportMonth, setReportMonth] = useState(new Date().toISOString().slice(0, 7));
   const [taskEmployeeFilter, setTaskEmployeeFilter] = useState("all");
   const [reportEmployeeFilter, setReportEmployeeFilter] = useState("all");
@@ -589,13 +590,41 @@ const ManagerDashboard = () => {
 
   /* Render */
   return (
-    <div style={s.container}>
+    <div style={s.container} className="dashboard-container manager-dashboard">
       {/* Notification toast */}
       {notification && (
         <div style={{ ...s.toast, ...s[`toast_${notification.type}`] }}>
           {notification.msg}
         </div>
       )}
+
+      {/* Mobile Top Header */}
+      <div className="mobile-header">
+        <div className="mobile-header-logo-section">
+          <button className="mobile-hamburger-btn" onClick={() => setSidebarOpen(true)}>
+            ☰
+          </button>
+          <div style={{ ...s.logo, paddingLeft: 0 }}>
+            <span style={s.logoIcon}>M</span>
+            <span style={s.logoText}>Manager</span>
+          </div>
+        </div>
+        <span className="mobile-header-title">
+          {activeTab === "overview" && "Overview"}
+          {activeTab === "employees" && "Team Members"}
+          {activeTab === "tasks" && "Task Board"}
+          {activeTab === "assign" && "Assign Task"}
+          {activeTab === "completed" && "Completed Reports"}
+          {activeTab === "messages" && "Private Messages"}
+        </span>
+        <div className="mobile-header-avatar">{initials(getCurrentManagerName())}</div>
+      </div>
+
+      {/* Sidebar Overlay backdrop */}
+      {sidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+      )}
+
       {unreadCount > 0 && activeTab !== "messages" && (
         <button style={s.messagePopup} onClick={() => setActiveTab("messages")}>
           {unreadCount} new message{unreadCount === 1 ? "" : "s"}
@@ -603,8 +632,11 @@ const ManagerDashboard = () => {
       )}
 
       {/* Sidebar */}
-      <aside style={s.sidebar}>
+      <aside style={s.sidebar} className={`dashboard-sidebar ${sidebarOpen ? "open" : ""}`}>
         <div style={s.sidebarTop}>
+          <div className="sidebar-mobile-close">
+            <button className="sidebar-mobile-close-btn" onClick={() => setSidebarOpen(false)}>×</button>
+          </div>
           <div style={s.logo}>
             <span style={s.logoIcon}>M</span>
             <span style={s.logoText}>Manager</span>
@@ -625,7 +657,10 @@ const ManagerDashboard = () => {
                   ...s.navItem,
                   ...(activeTab === tab.id ? s.navItemActive : {}),
                 }}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setSidebarOpen(false);
+                }}
               >
                 <span style={s.navIcon}>{tab.icon}</span>
                 <span>{tab.label}</span>
@@ -637,16 +672,16 @@ const ManagerDashboard = () => {
           </nav>
         </div>
 
-        <button style={s.logoutBtn} onClick={handleLogout}>
+        <button style={s.logoutBtn} onClick={() => { handleLogout(); setSidebarOpen(false); }}>
           <span style={{ fontSize: 14 }}>X</span>
           <span>Logout</span>
         </button>
       </aside>
 
       {/* Main content */}
-      <main style={s.main}>
+      <main style={s.main} className="dashboard-main">
         {/* Page header */}
-        <div style={s.pageHeader}>
+        <div style={s.pageHeader} className="pageHeader">
           <div>
             <h1 style={s.pageTitle}>
               {activeTab === "overview" && "Overview"}
@@ -670,14 +705,14 @@ const ManagerDashboard = () => {
         {/* Overview tab */}
         {activeTab === "overview" && (
           <div>
-            <div style={s.statsGrid}>
+            <div style={s.statsGrid} className="dashboard-stats-grid">
               {[
                 { label: "Total Employees", value: employees.length, accent: "#185FA5", sub: "team members" },
                 { label: "Pending Approval", value: pending, accent: "#EF9F27", sub: "awaiting review" },
                 { label: "Tasks In Progress", value: taskCounts.in_progress, accent: "#378ADD", sub: "active now" },
                 { label: "Completed", value: taskCounts.completed, accent: "#639922", sub: "finished tasks" },
               ].map((stat) => (
-                <div key={stat.label} style={s.statCard}>
+                <div key={stat.label} style={s.statCard} className="statCard">
                   <div style={{ ...s.statAccent, background: stat.accent }} />
                   <div style={s.statLabel}>{stat.label}</div>
                   <div style={s.statValue}>{stat.value}</div>
@@ -694,7 +729,7 @@ const ManagerDashboard = () => {
                 .map((work, i) => (
                   <React.Fragment key={work.id}>
                     {i > 0 && <Divider />}
-                    <div style={s.overviewRow}>
+                    <div style={s.overviewRow} className="dashboard-task-row">
                       <div style={{ ...s.statusBar, background: STATUS_META[work.status]?.bar }} />
                       <div style={s.overviewLeft}>
                         <span style={s.overviewTitle}>{work.title}</span>
@@ -720,7 +755,7 @@ const ManagerDashboard = () => {
               return (
                 <React.Fragment key={emp.id}>
                   {i > 0 && <Divider />}
-                  <div style={s.empRow}>
+                  <div style={s.empRow} className="dashboard-emp-row">
                     <div style={{ ...s.empAvatar, background: ac.bg, color: ac.color }}>
                       {initials(emp.username)}
                     </div>
@@ -728,14 +763,14 @@ const ManagerDashboard = () => {
                       <span style={s.empName}>{emp.username}</span>
                       <span style={s.empEmail}>{emp.email}</span>
                     </div>
-                    <div style={s.empStatus}>
+                    <div style={s.empStatus} className="dashboard-emp-status">
                       {emp.is_approved ? (
                         <span style={s.approvedChip}>Approved</span>
                       ) : (
                         <span style={s.pendingChip}>Pending</span>
                       )}
                     </div>
-                    <div style={s.empActions}>
+                    <div style={s.empActions} className="dashboard-emp-actions">
                       {!emp.is_approved && (
                         <button
                           style={s.btnApprove}
@@ -787,11 +822,11 @@ const ManagerDashboard = () => {
               {filteredTasks.map((work, i) => (
                 <React.Fragment key={work.id}>
                   {i > 0 && <Divider />}
-                  <div style={s.taskRow}>
+                  <div style={s.taskRow} className="dashboard-task-row">
                     <div style={{ ...s.statusBar, background: STATUS_META[work.status]?.bar }} />
 
                     {editingWorkId === work.id ? (
-                      <div style={{ flex: 1, paddingLeft: 12 }}>
+                      <div style={{ flex: 1, paddingLeft: 12 }} className="dashboard-formGroup">
                         <input
                           style={s.input}
                           value={editTitle}
@@ -840,7 +875,7 @@ const ManagerDashboard = () => {
                     )}
 
                     {editingWorkId !== work.id && work.status !== "completed" && (
-                      <div style={s.taskActions}>
+                      <div style={s.taskActions} className="dashboard-task-actions">
                         <button style={s.btnEdit} onClick={() => startEdit(work)}>Edit</button>
                         <button style={s.btnDelete} onClick={() => deleteWork(work.id)}>Delete</button>
                       </div>
@@ -1003,8 +1038,8 @@ const ManagerDashboard = () => {
 
 
         {activeTab === "messages" && (
-          <div style={s.messageGrid}>
-            <SectionCard title={`People (${messagingContacts.length})`}>
+          <div style={s.messageGrid} className="dashboard-message-grid">
+            <SectionCard title={`People (${messagingContacts.length})`} className={`chat-contacts-panel ${selectedContact ? "has-selected" : ""}`}>
               {messagingContacts.length === 0 && (
                 <p style={s.emptyText}>No approved users available to message</p>
               )}
@@ -1047,6 +1082,7 @@ const ManagerDashboard = () => {
                   ? `Chat with ${contactMap[selectedContact] || "Person"}`
                   : "Private Chat"
               }
+              className={`chat-window-panel ${selectedContact ? "has-selected" : ""}`}
               action={
                 <div style={s.chatHeaderActions}>
                   <span style={s.messageCount}>
@@ -1062,7 +1098,10 @@ const ManagerDashboard = () => {
 
               {selectedContact && (
                 <>
-                  <div style={s.messageList} ref={scrollContainerRef}>
+                  <button className="back-to-people-btn" onClick={() => setSelectedContact("")}>
+                    ← Back to People
+                  </button>
+                  <div style={s.messageList} className="dashboard-messageList" ref={scrollContainerRef}>
                     {messageLoading && <p style={s.emptyText}>Loading messages...</p>}
                     {!messageLoading && messages.length === 0 && (
                       <p style={s.emptyText}>No messages yet</p>
@@ -1077,8 +1116,9 @@ const ManagerDashboard = () => {
                               ...s.messageBubbleWrap,
                               justifyContent: isMine ? "flex-end" : "flex-start",
                             }}
+                            className="dashboard-messageBubbleWrap"
                           >
-                            <div style={{ ...s.messageBubble, ...(isMine ? s.messageMine : s.messageTheirs) }}>
+                            <div style={{ ...s.messageBubble, ...(isMine ? s.messageMine : s.messageTheirs) }} className="dashboard-messageBubble">
                               {editingMessageId === msg.id ? (
                                 <>
                                   <textarea
@@ -1114,9 +1154,10 @@ const ManagerDashboard = () => {
                     <div ref={messagesEndRef} />
                   </div>
 
-                  <div style={s.messageComposer}>
+                  <div style={s.messageComposer} className="dashboard-messageComposer">
                     <textarea
                       style={{ ...s.input, ...s.messageInput }}
+                      className="dashboard-messageInput"
                       placeholder="Write a private message..."
                       value={messageBody}
                       onChange={(e) => setMessageBody(e.target.value)}
