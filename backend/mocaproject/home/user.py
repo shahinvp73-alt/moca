@@ -131,9 +131,15 @@ def manager_list(request):
 def user_list(request):
     users = User.objects.filter(is_approved=True).exclude(id=request.user.id).order_by("username")
     
-    # In manager dashboard, do not see other managers and superusers; only see employees
+    # Exclude superusers and staff members from direct messaging list
+    users = users.filter(is_superuser=False, is_staff=False)
+    
+    # If the logged-in user is a manager, they should only see employees (no other managers)
     if request.user.role == "manager":
-        users = users.filter(role="employee", is_superuser=False, is_staff=False)
+        users = users.filter(role="employee")
+    # If the logged-in user is an employee, they can see employees and managers
+    elif request.user.role == "employee":
+        users = users.filter(role__in=["employee", "manager"])
         
     exclude_id = request.query_params.get("exclude_id")
 

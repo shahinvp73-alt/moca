@@ -199,6 +199,10 @@ def send_message(request):
     if not sender.is_approved or not receiver.is_approved:
         return Response({"error": "Both users must be approved before messaging"}, status=400)
 
+    # Exclude sending messages to superusers or staff
+    if receiver.is_superuser or receiver.is_staff:
+        return Response({"error": "Cannot send messages to superusers or staff members"}, status=400)
+
     message = Message(sender=sender, receiver=receiver)
     message.set_body(body)
     message.save()
