@@ -125,7 +125,7 @@ def message_summaries(request, user_id):
     except User.DoesNotExist:
         return Response({"error": "User not found"}, status=404)
 
-    contacts = User.objects.filter(is_approved=True).exclude(id=user_id).order_by("username")
+    contacts = User.objects.filter(is_approved=True, is_superuser=False, is_staff=False).exclude(id=user_id).order_by("username")
     summaries = []
 
     for contact in contacts:
