@@ -242,6 +242,10 @@ EMAIL_USE_TLS = os.environ.get(
     "True"
 ) == "True"
 
+EMAIL_TIMEOUT = int(
+    os.environ.get("EMAIL_TIMEOUT", 10)
+)
+
 EMAIL_HOST_USER = os.environ.get(
     "EMAIL_HOST_USER",
     "shahinvp73@gmail.com"
