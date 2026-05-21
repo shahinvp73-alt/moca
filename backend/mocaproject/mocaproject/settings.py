@@ -223,9 +223,8 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
 }
+
 # Email Configuration
-# Set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD in your environment.
-# For Gmail, EMAIL_HOST_PASSWORD must be an App Password, not your normal login password.
 EMAIL_BACKEND = os.environ.get(
     "EMAIL_BACKEND",
     "django.core.mail.backends.smtp.EmailBackend"
@@ -251,15 +250,15 @@ EMAIL_TIMEOUT = int(
 
 EMAIL_HOST_USER = os.environ.get(
     "EMAIL_HOST_USER",
-    ""
+    "shahinvp73@gmail.com"
 )
 
 EMAIL_HOST_PASSWORD = os.environ.get(
     "EMAIL_HOST_PASSWORD",
-    ""
+    "uumbecpicfntzaqa"
 )
 
 DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL",
-    f"mail <{EMAIL_HOST_USER}>" if EMAIL_HOST_USER else ""
+    "mail <shahinvp73@gmail.com>"
 )
