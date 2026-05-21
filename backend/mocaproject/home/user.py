@@ -218,8 +218,8 @@ def request_password_reset_otp(request):
         return Response({
             "error": (
                 "Email service is not configured. Add "
-                f"{', '.join(missing_settings)} to {settings.EMAIL_ENV_FILE}, "
-                "then restart the backend."
+                f"{', '.join(missing_settings)} in Render backend environment "
+                "variables, then redeploy the backend."
             )
         }, status=503)
     
