@@ -225,10 +225,16 @@ def request_password_reset_otp(request):
     
     try:
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [email], fail_silently=False)
-    except Exception:
+    except Exception as exc:
         otp_record.delete()
         logger.exception("Failed to send password reset email")
-        return Response({"error": "Failed to send email. Please try again later."}, status=503)
+        return Response({
+            "error": (
+                "Failed to send OTP email. Check EMAIL_HOST_USER and "
+                "EMAIL_HOST_PASSWORD in Render environment variables."
+            ),
+            "detail": exc.__class__.__name__,
+        }, status=503)
 
     return Response({"message": "OTP sent successfully to your email."})
 

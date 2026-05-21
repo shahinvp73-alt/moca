@@ -24,6 +24,15 @@ const ForgotPassword = () => {
     return () => clearTimeout(timer);
   }, [step, otpSecondsLeft]);
 
+  const readApiMessage = async (response, fallback) => {
+    try {
+      const data = await response.json();
+      return data.error || data.message || fallback;
+    } catch (err) {
+      return fallback;
+    }
+  };
+
   const handleRequestOTP = async (e) => {
     e?.preventDefault();
     setLoading(true);
@@ -39,14 +48,20 @@ const ForgotPassword = () => {
           body: JSON.stringify({ username: username.trim(), email: email.trim().toLowerCase() }),
         }
       );
-      const data = await response.json();
       if (response.ok) {
+        const data = await response.json();
         setOtp("");
         setOtpSecondsLeft(60);
         setMessage(data.message);
         setStep(2);
       } else {
-        setError(data.error || data.message || "Failed to send OTP");
+        const apiMessage = await readApiMessage(
+          response,
+          response.status === 400
+            ? "Enter the username and registered email for your account."
+            : "The email service is not available. Please try again later."
+        );
+        setError(apiMessage);
       }
     } catch (err) {
       setError("Server error. Please try again later.");
@@ -77,15 +92,19 @@ const ForgotPassword = () => {
           body: JSON.stringify({ email: email.trim().toLowerCase(), otp: otp.trim() }),
         }
       );
-      const data = await response.json();
       if (response.ok) {
+        const data = await response.json();
         setMessage(data.message);
         setOtpSecondsLeft(0);
         setStep(3);
       } else {
+        const apiMessage = await readApiMessage(
+          response,
+          "Invalid OTP. Please resend OTP."
+        );
         setOtpSecondsLeft(0);
         setOtp("");
-        setError(data.error || "Invalid OTP. Please resend OTP.");
+        setError(apiMessage);
       }
     } catch (err) {
       setError("Server error. Please try again later.");
@@ -116,12 +135,15 @@ const ForgotPassword = () => {
           body: JSON.stringify({ email: email.trim().toLowerCase(), otp: otp.trim(), password }),
         }
       );
-      const data = await response.json();
       if (response.ok) {
         alert("Password reset successful! Redirecting to login...");
         navigate("/login");
       } else {
-        setError(data.error || "Failed to reset password");
+        const apiMessage = await readApiMessage(
+          response,
+          "Failed to reset password"
+        );
+        setError(apiMessage);
       }
     } catch (err) {
       setError("Server error. Please try again later.");
