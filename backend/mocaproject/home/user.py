@@ -88,11 +88,12 @@ def me(request):
     serializer = user_serializer.UserSerializer(request.user)
     return Response(serializer.data)
 
-# employee_list
+
+# employee_list — returns ONLY actual employees (not managers or superusers)
 @api_view(['GET'])
 def employee_list(request):
 
-    employees = User.objects.filter(role="employee")
+    employees = User.objects.filter(role="employee", is_superuser=False, is_staff=False).order_by("username")
 
     data = []
 
@@ -101,7 +102,8 @@ def employee_list(request):
             "id": employee.id,
             "username": employee.username,
             "email": employee.email,
-            "is_approved": employee.is_approved
+            "is_approved": employee.is_approved,
+            "role": "employee"
         })
 
     return Response(data)
@@ -128,6 +130,11 @@ def manager_list(request):
 @api_view(['GET'])
 def user_list(request):
     users = User.objects.filter(is_approved=True).exclude(id=request.user.id).order_by("username")
+    
+    # In manager dashboard, do not see other managers and superusers; only see employees
+    if request.user.role == "manager":
+        users = users.filter(role="employee", is_superuser=False, is_staff=False)
+        
     exclude_id = request.query_params.get("exclude_id")
 
     if exclude_id:
@@ -173,6 +180,8 @@ def delete_employee(request, id):
             {"error": "Employee not found"},
             status=status.HTTP_404_NOT_FOUND
         )
+
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def request_password_reset_otp(request):
