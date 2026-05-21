@@ -260,5 +260,5 @@ EMAIL_HOST_PASSWORD = os.environ.get(
 
 DEFAULT_FROM_EMAIL = os.environ.get(
     "DEFAULT_FROM_EMAIL",
-    "mail <shahinvp73@gmail.com>"
+    "moca <shahinvp73@gmail.com>"
 )
